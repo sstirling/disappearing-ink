@@ -9,7 +9,7 @@ song:
 
 It seemed like a cruel trick.
 
-How could an otherwise healthy person who was diagnosed with Alzheimer’s disease be facing cancer in August?
+How could an otherwise healthy person who was diagnosed with Alzheimer’s disease in July be facing cancer in August?
 
 But there it is, at least in test results. No matter how creatively I Google search, no matter what AI assistant I use to analyze the scientific jargon delivered to me, I get the same result.
 
