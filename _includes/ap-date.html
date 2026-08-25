@@ -1,0 +1,9 @@
+{%- comment -%}
+  Formats a date in AP style: months of six or more letters are abbreviated
+  when they carry a specific date, the rest are spelled out. Strftime has no
+  concept of this, so the months are listed and indexed by month number.
+  Parameter: date (required).
+{%- endcomment -%}
+{%- assign ap_months = "Jan.,Feb.,March,April,May,June,July,Aug.,Sept.,Oct.,Nov.,Dec." | split: "," -%}
+{%- assign month_index = include.date | date: "%-m" | times: 1 | minus: 1 -%}
+{{- ap_months[month_index] }} {{ include.date | date: "%-d, %Y" -}}

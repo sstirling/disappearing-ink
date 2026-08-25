@@ -1,0 +1,12 @@
+---
+layout: default
+---
+<article class="sheet page">
+  <header class="page__header">
+    <h1 class="page__title">{{ page.title | smartify }}</h1>
+    {%- if page.subtitle %}<p class="page__subtitle">{{ page.subtitle | smartify }}</p>{% endif -%}
+  </header>
+  <div class="prose">
+    {{ content }}
+  </div>
+</article>

@@ -1,0 +1,45 @@
+---
+layout: default
+---
+{%- assign minutes = content | number_of_words | divided_by: site.words_per_minute | plus: 1 -%}
+<article class="sheet post">
+  <header class="post__header">
+    {%- include day-count.html date=page.date day=page.day -%}
+    <h1 class="post__title">{{ page.title | smartify }}</h1>
+    {%- if page.subtitle %}<p class="post__subtitle">{{ page.subtitle | smartify }}</p>{% endif -%}
+    <p class="post__meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{%- include ap-date.html date=page.date -%}</time>
+      <span class="meta-dot" aria-hidden="true">&middot;</span>
+      {{ minutes }} min read
+    </p>
+  </header>
+
+  <div class="prose">
+    {{ content }}
+  </div>
+
+  {%- comment -%}
+    Optional. Most entries have no song and render nothing here. See
+    _includes/song.html for the front matter shape.
+  {%- endcomment -%}
+  {%- if page.song -%}{%- include song.html song=page.song -%}{%- endif -%}
+
+  {%- comment -%}
+    In Jekyll, `next` is the newer post and `previous` the older one. The labels
+    below are written from the reader's point of view, moving through time.
+  {%- endcomment -%}
+  <nav class="post-nav" aria-label="More entries">
+    <div class="post-nav__side">
+      {%- if page.previous %}
+        <span class="post-nav__label">Earlier</span>
+        <a href="{{ page.previous.url | relative_url }}">{{ page.previous.title | smartify }}</a>
+      {% endif -%}
+    </div>
+    <div class="post-nav__side post-nav__side--end">
+      {%- if page.next %}
+        <span class="post-nav__label">Later</span>
+        <a href="{{ page.next.url | relative_url }}">{{ page.next.title | smartify }}</a>
+      {% endif -%}
+    </div>
+  </nav>
+</article>

@@ -1,0 +1,50 @@
+---
+layout: default
+---
+<div class="sheet intro">
+  <p class="intro__tagline">{{ site.tagline }}</p>
+</div>
+
+{%- comment -%}
+  Day 0 leads the homepage no matter how old it gets, so a reader arriving cold
+  starts with the entry that explains who Carol is and why any of this is being
+  written. Everything after it runs newest first.
+
+  Which entry that is comes from `diagnosis_date` in _config.yml rather than a
+  flag in the post, for the same reason the day count does: one date governs the
+  whole site, and moving it moves the pin with it. If no entry falls on the
+  diagnosis date, nothing is pinned and the list is simply reverse-chronological.
+
+  Iterating `reversed` walks oldest first, so on the off chance two entries share
+  the diagnosis date the earlier one wins rather than whichever happens to sort
+  first.
+{%- endcomment -%}
+{%- assign diagnosis_day = site.diagnosis_date | date: "%Y-%m-%d" -%}
+{%- assign pinned_url = "" -%}
+{%- for post in site.posts reversed -%}
+  {%- assign post_day = post.date | date: "%Y-%m-%d" -%}
+  {%- if post_day == diagnosis_day -%}
+    {%- assign pinned = post -%}
+    {%- assign pinned_url = post.url -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<div class="entries">
+  {%- if site.posts.size > 0 -%}
+    {%- if pinned_url != "" -%}
+      {%- include entry.html post=pinned pinned=true -%}
+    {%- endif -%}
+    {%- for post in site.posts -%}
+      {%- unless post.url == pinned_url -%}
+        {%- include entry.html post=post -%}
+      {%- endunless -%}
+    {%- endfor -%}
+  {%- else -%}
+    <div class="sheet">
+      <p class="empty-state">
+        No entries yet. Run <code>bin/new-post "A title"</code> to start one.
+      </p>
+    </div>
+  {%- endif -%}
+</div>

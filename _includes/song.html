@@ -1,0 +1,45 @@
+{%- comment -%}
+  The song at the foot of an entry: a link out, never an embed. A player would
+  put a second thing on the page competing for attention with the writing, and
+  would mean loading a tracker from another domain onto a page about someone's
+  health.
+
+  Parameter
+    song  required. A mapping lifted straight from a post's front matter:
+
+            song:
+              title:  required. The song.
+              artist: optional. Set under the title when present.
+              url:    required. Where the reader is sent.
+
+  Both title and url are required for anything to render at all. A half-filled
+  block in a draft therefore shows nothing, rather than a link to nowhere or a
+  title that looks like it should be clickable and isn't. Entries without a
+  song -- which is most of them -- simply omit the key and never reach here.
+{%- endcomment -%}
+{%- assign song = include.song -%}
+{%- if song.title and song.url -%}
+  {%- comment -%}
+    The arrow trails the last line of the block, whichever that turns out to be,
+    so it reads as part of the text rather than floating off at the margin.
+  {%- endcomment -%}
+  {%- capture out_arrow %}<span class="song__out" aria-hidden="true">&#8599;</span>{% endcapture -%}
+  <aside class="song">
+    <p class="song__label">Musical accompaniment</p>
+    <a class="song__link" href="{{ song.url }}" target="_blank" rel="noopener noreferrer">
+      <span class="song__note" aria-hidden="true">&#9834;</span>
+      <span class="song__body">
+        <span class="song__title">{{ song.title | smartify }}{% unless song.artist %} {{ out_arrow }}{% endunless %}</span>
+        {%- if song.artist %}<span class="song__artist">{{ song.artist | smartify }} {{ out_arrow }}</span>{% endif -%}
+        {%- comment -%}
+          The glyph and arrow are decorative, so the link would otherwise be
+          announced as just a song title with no hint that it leaves the site.
+          The host is named only when we can actually tell what it is.
+        {%- endcomment -%}
+        <span class="sr-only">
+          &mdash; listen{% if song.url contains "youtu" %} on YouTube{% endif %}, opens in a new tab
+        </span>
+      </span>
+    </a>
+  </aside>
+{%- endif -%}

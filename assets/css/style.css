@@ -1,0 +1,664 @@
+/* ===========================================================================
+   disappearing ink
+
+   Plain CSS on purpose. Jekyll can compile Sass, but the version GitHub Pages
+   builds with is libsass, which chokes on clamp(), min() and color-mix(). This
+   file is served exactly as written -- what you edit is what ships.
+
+   Order: tokens, reset, shell, day marker, entries, prose, archive, footer,
+   motion, print.
+
+   The design rule that governs everything here: the "disappearing" idea lives
+   in ornament -- rules that dissolve, a numeral set light -- and never in
+   running text. Nothing a reader has to read is set below full contrast.
+   =========================================================================== */
+
+
+/* ---------------------------------------------------------------------------
+   Tokens
+   --------------------------------------------------------------------------- */
+:root {
+  /* Warm paper rather than white. Pure #fff under a serif reads clinical, and
+     this site is read at length and often late. */
+  --paper:     #faf7f2;
+  --ink:       #1c1a17;  /* 16.25:1 on paper */
+  --ink-muted: #665f56;  /*  5.89:1 on paper -- metadata, still past AA */
+  --accent:    #38486a;  /*  8.53:1 on paper -- links and the day numeral */
+  --rule:      #ded5c8;
+  --rule-soft: #ece5db;
+  --flag:      rgba(56, 72, 106, 0.07);
+
+  --font-serif: "Newsreader", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 34rem;   /* 64 characters of Newsreader at the base size */
+  --gutter: 1.25rem;
+
+  --rail-width: 6rem; /* the day marker's column in the left margin */
+  --rail-gap: 2.5rem;
+
+  /* The site's one piece of ornament: a hairline that holds for just over half
+     its length and then dissolves. Declared once, used under the masthead,
+     between entries, above the footer, and for any <hr> inside an entry. */
+  --fading-rule: linear-gradient(
+    to right,
+    var(--rule) 0%,
+    var(--rule) 52%,
+    var(--rule-soft) 76%,
+    transparent 100%
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:     #14130f;
+    --ink:       #e9e3d7;  /* 14.55:1 on paper */
+    --ink-muted: #a1988a;  /*  6.53:1 on paper */
+    --accent:    #a9bdd9;  /*  9.71:1 on paper */
+    --rule:      #35312a;
+    --rule-soft: #26231e;
+    --flag:      rgba(169, 189, 217, 0.09);
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Reset and base
+   --------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  /* Fluid from 17px on a phone to 19px on a desktop. Long-form text wants the
+     larger size, but 19px on a 320px screen costs too many lines per screen. */
+  font-size: clamp(1.0625rem, calc(1rem + 0.24vw), 1.1875rem);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.65;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { font-weight: 500; line-height: 1.2; text-wrap: balance; }
+p { text-wrap: pretty; }
+img { max-width: 100%; height: auto; }
+a { color: var(--accent); }
+
+/* Underlines set below the baseline and lightened, so a paragraph carrying
+   several links does not turn into a fence. */
+.prose a,
+.entry__more a,
+.archive-list__link,
+.post-nav a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.prose a:hover,
+.entry__more a:hover,
+.archive-list__link:hover,
+.post-nav a:hover { text-decoration-color: var(--accent); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; z-index: 10;
+  background: var(--paper); color: var(--ink);
+  padding: 0.75rem 1rem;
+}
+.skip-link:focus { left: 1rem; top: 1rem; }
+
+
+/* ---------------------------------------------------------------------------
+   The sheet -- the measured column everything sits in
+
+   The gutter is padding rather than a narrower width, so the measure stays a
+   true text measure and the padding is what disappears on a wide screen.
+   --------------------------------------------------------------------------- */
+.sheet,
+.masthead__inner,
+.site-footer {
+  width: 100%;
+  max-width: calc(var(--measure) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Anchors the absolutely positioned day rail on wide screens. */
+.sheet { position: relative; }
+
+
+/* ---------------------------------------------------------------------------
+   Masthead
+   --------------------------------------------------------------------------- */
+.masthead { padding-top: 2.25rem; }
+
+.masthead__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.masthead__inner::after {
+  content: "";
+  flex-basis: 100%;
+  height: 1px;
+  margin-top: 0.85rem;
+  background: var(--fading-rule);
+}
+
+.masthead__title {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.masthead__nav {
+  display: flex;
+  gap: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.masthead__nav a { color: var(--ink-muted); text-decoration: none; }
+.masthead__nav a:hover { color: var(--accent); }
+
+
+/* ---------------------------------------------------------------------------
+   The day marker
+
+   Mobile first: a single quiet line above the title. At 1000px there is enough
+   room outside the measure for a margin column, so the same element moves out
+   there and the numeral grows. One element, two layouts -- the markup never
+   duplicates, so a screen reader hears "Day 34" either way.
+   --------------------------------------------------------------------------- */
+.day-rail {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0 0 0.5rem;
+}
+
+.day-rail__label,
+.day-rail__note {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.day-rail__value {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--accent);
+}
+
+/* 1000px, not 900: the rail needs the measure plus its own width plus the gap
+   to fit inside the viewport, which works out to about 940px. Below that the
+   numeral was being clipped off the left edge. */
+@media (min-width: 1000px) {
+  .day-rail {
+    position: absolute;
+    /* Parks the rail in the margin, right-aligned against the start of the
+       text. The gutter is subtracted because `right: 100%` measures from the
+       padding edge, not from where the text actually begins. */
+    right: calc(100% - var(--gutter) + var(--rail-gap));
+    top: 0.3rem;
+    width: var(--rail-width);
+    display: block;
+    text-align: right;
+    margin: 0;
+  }
+
+  .day-rail__label { display: block; margin-bottom: 0.1rem; }
+
+  .day-rail__value {
+    display: block;
+    /* Light weight at a large size: present, but it never shouts over the
+       title it sits beside. */
+    font-size: 2.75rem;
+    font-weight: 200;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+
+  .day-rail__note { display: block; margin-top: 0.35rem; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Homepage
+   --------------------------------------------------------------------------- */
+.intro { padding-top: 2.25rem; }
+
+.intro__tagline {
+  margin: 0;
+  max-width: 26rem;
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.entries { padding-bottom: 1rem; }
+.entry { padding-top: 2.5rem; }
+
+/* A dissolving rule between entries, but never above the first one. */
+.entry + .entry::before {
+  content: "";
+  display: block;
+  position: relative;
+  top: -2.5rem;
+  height: 1px;
+  background: var(--fading-rule);
+}
+
+.entry__title {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.011em;
+}
+.entry__title a { color: var(--ink); text-decoration: none; }
+.entry__title a:hover { color: var(--accent); }
+
+.entry__subtitle {
+  margin: 0.4rem 0 0;
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.entry__meta,
+.post__meta {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.meta-dot { padding: 0 0.35rem; }
+
+/* Marks the entry held at the top of the homepage. Inherits the mono meta line
+   it sits in and only changes color, so it reads as one more piece of metadata
+   rather than as a badge stuck on the entry. */
+.entry__pin { color: var(--accent); }
+
+.entry__excerpt { margin: 1rem 0 0; color: var(--ink); }
+
+.entry__more {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.empty-state { padding: 3rem 0; color: var(--ink-muted); font-style: italic; }
+.empty-state code { font-family: var(--font-mono); font-size: 0.85em; font-style: normal; }
+
+
+/* ---------------------------------------------------------------------------
+   Post and page
+   --------------------------------------------------------------------------- */
+.post, .page { padding-top: 3rem; }
+.post__header, .page__header { margin-bottom: 2.25rem; }
+
+.post__title { margin: 0; font-size: 2.125rem; letter-spacing: -0.014em; }
+.page__title { margin: 0; font-size: 2rem; letter-spacing: -0.012em; }
+
+.post__subtitle,
+.page__subtitle {
+  margin: 0.55rem 0 0;
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Prose -- the running text of an entry
+   --------------------------------------------------------------------------- */
+.prose > * + * { margin-top: 1.35em; }
+.prose > :first-child { margin-top: 0; }
+
+.prose h2 { margin-top: 2.4em; font-size: 1.3125rem; letter-spacing: -0.006em; }
+.prose h3 { margin-top: 2em; font-size: 1.125rem; }
+
+.prose blockquote {
+  margin-inline: 0;
+  padding-left: 1.25rem;
+  /* The left rule fades downward -- the horizontal rule turned ninety degrees. */
+  border-left: 2px solid transparent;
+  border-image: linear-gradient(to bottom, var(--rule), transparent) 1;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.prose hr {
+  height: 1px;
+  border: 0;
+  margin: 2.5em 0;
+  background: var(--fading-rule);
+}
+
+.prose ul, .prose ol { padding-left: 1.25rem; }
+.prose li + li { margin-top: 0.4em; }
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--flag);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.prose pre {
+  overflow-x: auto;
+  padding: 1rem;
+  background: var(--flag);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.prose pre code { background: none; padding: 0; }
+
+.prose figure { margin: 2em 0; }
+.prose figcaption {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+/* Marks the placeholder block on the About page. Delete the markup and this
+   rule together once that page is written. */
+.draft-note {
+  margin: 0 0 2rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--flag);
+  border-left: 3px solid var(--accent);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+.draft-note p { margin: 0; }
+
+
+/* ---------------------------------------------------------------------------
+   Musical accompaniment
+
+   The optional song at the foot of an entry. Built entirely from vocabulary
+   that already exists elsewhere on the site -- the dissolving hairline, the
+   mono micro-label, the accent -- so it reads as part of the page rather than
+   as a widget bolted to the end of it. No new color tokens, which is why dark
+   mode needs no rule of its own below.
+   --------------------------------------------------------------------------- */
+.song { margin-top: 3.25rem; }
+
+/* Same construction as .site-footer::before: a rule that has to fade cannot be
+   a border, so it is an empty block with the shared gradient behind it. */
+.song::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-bottom: 1.4rem;
+  background: var(--fading-rule);
+}
+
+/* Matches .post-nav__label exactly -- the two sit within a few hundred pixels
+   of each other and any difference would read as a mistake. */
+.song__label {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* The whole block is one target: title, artist and both glyphs. A song title
+   alone is a small thing to expect someone to hit accurately. */
+.song__link {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 0.85rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.song__note {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.song__body { min-width: 0; }
+
+.song__title {
+  display: block;
+  font-size: 1.0625rem;
+  font-style: italic;
+  color: var(--accent);
+  /* Underlined only on hover. At rest this is a closing note, not a call to
+     action, and a standing underline would pull the eye off the last line of
+     the entry -- which is the line that should land. */
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+  text-decoration-color: transparent;
+}
+
+.song__artist {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.875rem;
+  font-style: normal;
+  color: var(--ink-muted);
+}
+
+/* Trails the last line of the block. Kept out of the underline by sitting in
+   its own span, so hovering does not draw a rule under the arrowhead. */
+.song__out {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-style: normal;
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.song__link:hover .song__title {
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.song__link:hover .song__out { color: var(--accent); }
+
+@media (max-width: 34rem) {
+  .song__link { column-gap: 0.7rem; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Post navigation
+   --------------------------------------------------------------------------- */
+.post-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.post-nav__side { min-width: 0; }
+.post-nav__side--end { text-align: right; }
+
+.post-nav__label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.post-nav a { color: var(--ink); font-size: 0.9375rem; }
+.post-nav a:hover { color: var(--accent); }
+
+@media (max-width: 34rem) {
+  .post-nav { grid-template-columns: 1fr; }
+  .post-nav__side--end { text-align: left; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Archive
+   --------------------------------------------------------------------------- */
+.archive-month + .archive-month { margin-top: 2.75rem; }
+
+.archive-month__title {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.archive-list { margin: 0; padding: 0; list-style: none; }
+
+.archive-list__item {
+  display: grid;
+  /* Fixed day column, flexible title, date pushed to the right edge. */
+  grid-template-columns: 5rem 1fr auto;
+  gap: 0.5rem 0.9rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.day-inline {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.day-inline__note { color: var(--ink-muted); }
+
+.archive-list__link { color: var(--ink); }
+.archive-list__link:hover { color: var(--accent); }
+
+.archive-list__date {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* Below 30rem three columns squeeze the title into a two-word ribbon. Day and
+   date pair up on one line instead, and the title takes the full width. */
+@media (max-width: 30rem) {
+  .archive-list__item {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "day  date"
+      "title title";
+    gap: 0.2rem 0.6rem;
+  }
+  .day-inline         { grid-area: day; }
+  .archive-list__date { grid-area: date; justify-self: start; }
+  .archive-list__link { grid-area: title; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Footer
+   --------------------------------------------------------------------------- */
+.site-footer {
+  margin-top: 4.5rem;
+  padding-bottom: 3.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.site-footer::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-bottom: 1.25rem;
+  background: var(--fading-rule);
+}
+
+.site-footer p { margin: 0; }
+.site-footer__note { text-transform: none; letter-spacing: 0.04em; }
+
+
+/* ---------------------------------------------------------------------------
+   Motion
+
+   The only animated properties are link colors. Honoring the preference costs
+   one rule and matters to readers who get motion sickness or migraines.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  a { transition: color 120ms ease, text-decoration-color 120ms ease; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Print
+   --------------------------------------------------------------------------- */
+@media print {
+  :root { --paper: #fff; --ink: #000; --ink-muted: #444; --accent: #000; }
+  .masthead__nav, .post-nav, .skip-link, .entry__more { display: none; }
+  .day-rail { position: static; text-align: left; }
+  body { font-size: 11pt; }
+  .prose a::after { content: " (" attr(href) ")"; font-size: 9pt; }
+
+  /* The song is part of the entry, so unlike .post-nav it prints. The arrow
+     means nothing on paper, and the address has to be spelled out to be of any
+     use to someone holding a printed page.
+
+     The grid is dropped first: inside it, ::after would be laid out as another
+     grid item and land in a column of its own. */
+  .song__out { display: none; }
+  .song__link { display: block; }
+  .song__note { display: none; }
+  .song__link::after {
+    display: block;
+    content: attr(href);
+    font-size: 9pt;
+    word-break: break-all;
+  }
+}

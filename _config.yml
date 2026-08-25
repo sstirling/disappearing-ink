@@ -1,0 +1,75 @@
+# ---------------------------------------------------------------------------
+# Site identity
+# ---------------------------------------------------------------------------
+title: "disappearing ink"
+tagline: "Notes from someone walking through Alzheimer's with a loved one"
+description: >-
+  A record of caring for someone with Alzheimer's, counted in days from
+  the diagnosis.
+author: "Stephen Stirling"
+
+# ---------------------------------------------------------------------------
+# Where the site lives
+#
+# These two lines are the only place the site's address is declared. To move
+# the blog, change them together:
+#
+#   Project subpath (current)  url: "https://sstirling.github.io"   baseurl: "/disappearing-ink"
+#   Root user site             url: "https://sstirling.github.io"   baseurl: ""
+#   Custom domain              url: "https://example.com"           baseurl: ""
+#                              ...and add a CNAME file holding the bare domain.
+#
+# The blog publishes at https://sstirling.github.io/disappearing-ink/ because the
+# root address is already taken: sstirling.github.io serves the portfolio site
+# from its own repo of that name, live since 2019. The root option above is only
+# available to a repo named exactly sstirling.github.io, so taking it would mean
+# displacing that site.
+#
+# `baseurl` must match the repo name exactly, leading slash and no trailing one.
+# Get it wrong and the pages still build, but every stylesheet and link 404s.
+#
+# This also changes the local preview address: `bin/serve` mounts the site at
+# http://localhost:4000/disappearing-ink/ and the bare root will 404.
+# ---------------------------------------------------------------------------
+url: "https://sstirling.github.io"
+baseurl: "/disappearing-ink"
+
+# ---------------------------------------------------------------------------
+# The one date the whole site counts from.
+#
+# Every "day N" label on the site is derived from this value, so it is never
+# typed into a post. Changing it here renumbers the entire archive.
+# ---------------------------------------------------------------------------
+diagnosis_date: 2026-07-16
+
+# The build server runs in UTC unless told otherwise. Pinning the zone keeps
+# a post written late at night from being filed under the following day, which
+# would shift its day count by one.
+timezone: America/New_York
+
+# ---------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------
+permalink: /:year/:month/:day/:title/
+
+# Jekyll hides posts dated in the future by default. For a journal that is the
+# wrong failure: a mistyped date would make an entry vanish with no error, and
+# GitHub only rebuilds on push, so there is nothing to schedule anyway. Better
+# that a wrong date shows up looking wrong.
+future: true
+markdown: kramdown
+kramdown:
+  input: GFM
+  smart_quotes: lsquo,rsquo,ldquo,rdquo   # curly quotes and proper dashes
+  hard_wrap: false
+
+# Words per minute used for the reading-time estimate on each entry.
+words_per_minute: 200
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
+  - bin
+  - .bundle

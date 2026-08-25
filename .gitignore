@@ -1,0 +1,12 @@
+# Jekyll build output and caches -- everything here is regenerated from source.
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# Bundler
+vendor/
+.bundle/
+
+# macOS
+.DS_Store

@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+# Creates a new entry in _posts/ with the front matter already filled in.
+#
+#   bin/new-post "The morning he asked about the dog"
+#   bin/new-post --date 2026-08-12 "A day I want to backdate"
+#
+# The day count is not written into the file. Jekyll derives it at build time
+# from the post's date and diagnosis_date in _config.yml, so it can never fall
+# out of step with the rest of the archive. The count printed below is only a
+# confirmation that the date you gave lands where you expected.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+POSTS_DIR="$REPO_ROOT/_posts"
+
+POST_DATE="$(date +%Y-%m-%d)"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --date)
+      POST_DATE="${2:-}"
+      [[ -n "$POST_DATE" ]] || { echo "error: --date needs a value, e.g. --date 2026-08-12" >&2; exit 1; }
+      shift 2
+      ;;
+    -h|--help)
+      echo "usage: bin/new-post [--date YYYY-MM-DD] \"Post title\""
+      echo "  Flags must come before the title."
+      echo "  Without --date, the entry is dated today."
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+TITLE="${*:-}"
+if [[ -z "$TITLE" ]]; then
+  echo "usage: bin/new-post [--date YYYY-MM-DD] \"Post title\"" >&2
+  exit 1
+fi
+
+if ! [[ "$POST_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  echo "error: date must be YYYY-MM-DD, got '$POST_DATE'" >&2
+  exit 1
+fi
+
+# Slug: lowercase, drop apostrophes so "don't" becomes "dont" rather than
+# "don-t", then collapse everything else that isn't a letter or digit.
+SLUG="$(printf '%s' "$TITLE" \
+  | tr '[:upper:]' '[:lower:]' \
+  | sed "s/['’]//g" \
+  | sed 's/[^a-z0-9]\{1,\}/-/g' \
+  | sed 's/^-//; s/-$//')"
+
+if [[ -z "$SLUG" ]]; then
+  echo "error: could not build a filename from that title" >&2
+  exit 1
+fi
+
+FILE="$POSTS_DIR/${POST_DATE}-${SLUG}.md"
+if [[ -e "$FILE" ]]; then
+  echo "error: $FILE already exists" >&2
+  exit 1
+fi
+
+# Escape double quotes so a title containing them still yields valid YAML.
+YAML_TITLE="${TITLE//\"/\\\"}"
+
+mkdir -p "$POSTS_DIR"
+# The song block is written in commented out, so every entry carries the option
+# without every entry using it. Uncomment and fill the three lines to add one;
+# leave or delete them and the entry simply ends after the last paragraph.
+cat > "$FILE" <<EOF
+---
+layout: post
+title: "$YAML_TITLE"
+# song:
+#   title: "Song title"
+#   artist: "Artist"
+#   url: "https://www.youtube.com/watch?v=..."
+---
+
+EOF
+
+# Read the diagnosis date out of _config.yml so this script has no second copy
+# of it to drift from.
+DIAGNOSIS="$(sed -n 's/^diagnosis_date:[[:space:]]*//p' "$REPO_ROOT/_config.yml" | tr -d '"' | head -1)"
+
+if [[ -n "$DIAGNOSIS" ]]; then
+  # Compare at noon for the same daylight-saving reason the site does.
+  D0="$(date -j -f '%Y-%m-%d %H:%M:%S' "$DIAGNOSIS 12:00:00" '+%s')"
+  D1="$(date -j -f '%Y-%m-%d %H:%M:%S' "$POST_DATE 12:00:00" '+%s')"
+  # Bash division truncates toward zero, so a date before the diagnosis would
+  # come out one day short. Shifting into positive territory before dividing
+  # and subtracting the shift back off gives true floor division, matching what
+  # the site renders for the same date.
+  SHIFT=100000
+  DAYS=$(( (D1 - D0 + 43200 + SHIFT * 86400) / 86400 - SHIFT ))
+  echo "Created $FILE"
+  echo "This entry will publish as day $DAYS."
+else
+  echo "Created $FILE"
+fi

@@ -1,0 +1,49 @@
+{%- comment -%}
+  The single source of truth for "days from diagnosis."
+
+  Every day label on the site routes through here, so the arithmetic exists
+  once and `diagnosis_date` in _config.yml renumbers the whole archive.
+
+  Parameters
+    date    required. A post date. Compared against site.diagnosis_date.
+    day     optional. An integer that overrides the calculation, for an entry
+            published later than the day it describes.
+    format  "rail" (default) for the large marker beside a title,
+            "inline" for the compact form used in the archive list.
+
+  Why noon: both dates are normalized to 12:00 before conversion to epoch
+  seconds. Midnight-to-midnight spans cross a daylight-saving boundary twice a
+  year and come out an hour short, which integer division would silently round
+  down to the wrong day. Adding half a day (43200s) before dividing rounds to
+  the nearest day instead of truncating, which also makes the result correct
+  for pre-diagnosis posts, where Liquid's division floors toward negative
+  infinity.
+{%- endcomment -%}
+
+{%- if include.day -%}
+  {%- assign days = include.day | times: 1 -%}
+{%- else -%}
+  {%- capture diagnosis_noon -%}{{ site.diagnosis_date | date: "%Y-%m-%d" }} 12:00:00{%- endcapture -%}
+  {%- capture entry_noon -%}{{ include.date | date: "%Y-%m-%d" }} 12:00:00{%- endcapture -%}
+  {%- assign diagnosis_seconds = diagnosis_noon | date: "%s" | times: 1 -%}
+  {%- assign entry_seconds = entry_noon | date: "%s" | times: 1 -%}
+  {%- assign days = entry_seconds | minus: diagnosis_seconds | plus: 43200 | divided_by: 86400 -%}
+{%- endif -%}
+
+{%- comment -%} Render negatives with a typographic minus, not a hyphen. {%- endcomment -%}
+{%- if days < 0 -%}
+  {%- assign magnitude = days | times: -1 -%}
+  {%- capture day_value -%}&#8722;{{ magnitude }}{%- endcapture -%}
+{%- else -%}
+  {%- capture day_value -%}{{ days }}{%- endcapture -%}
+{%- endif -%}
+
+{%- if include.format == "inline" -%}
+  <span class="day-inline">Day {{ day_value }}{% if days == 0 %} <span class="day-inline__note">diagnosis</span>{% endif %}</span>
+{%- else -%}
+  <p class="day-rail">
+    <span class="day-rail__label">Day</span>
+    <span class="day-rail__value">{{ day_value }}</span>
+    {%- if days == 0 %}<span class="day-rail__note">diagnosis</span>{% endif -%}
+  </p>
+{%- endif -%}

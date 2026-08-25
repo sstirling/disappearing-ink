@@ -1,0 +1,32 @@
+{%- comment -%}
+  One entry as it appears in a list. Shared by the homepage and the archive so
+  the two never drift apart.
+
+  Parameters
+    post    required.
+    pinned  optional. True for the entry held at the top of the homepage. Adds a
+            "Start here" marker to the meta line -- without it, an old entry
+            sitting above newer ones just looks like the sort is broken.
+{%- endcomment -%}
+{%- assign post = include.post -%}
+{%- assign minutes = post.content | number_of_words | divided_by: site.words_per_minute | plus: 1 -%}
+<article class="sheet entry">
+  {%- include day-count.html date=post.date day=post.day -%}
+  <h2 class="entry__title">
+    <a href="{{ post.url | relative_url }}">{{ post.title | smartify }}</a>
+  </h2>
+  {%- if post.subtitle %}<p class="entry__subtitle">{{ post.subtitle | smartify }}</p>{% endif -%}
+  <p class="entry__meta">
+    <time datetime="{{ post.date | date_to_xmlschema }}">{%- include ap-date.html date=post.date -%}</time>
+    <span class="meta-dot" aria-hidden="true">&middot;</span>
+    {{ minutes }} min read
+    {%- if include.pinned %}
+      <span class="meta-dot" aria-hidden="true">&middot;</span>
+      <span class="entry__pin">Start here</span>
+    {% endif -%}
+  </p>
+  <p class="entry__excerpt">{{ post.excerpt | strip_html | normalize_whitespace | truncatewords: 44 }}</p>
+  <p class="entry__more">
+    <a href="{{ post.url | relative_url }}">Read the entry<span class="sr-only">: {{ post.title | smartify }}</span></a>
+  </p>
+</article>

@@ -1,0 +1,37 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+{%- comment -%} Page title falls back to the site title on the homepage. {%- endcomment -%}
+{%- if page.title and page.title != site.title -%}
+  {%- capture page_title -%}{{ page.title }} &middot; {{ site.title }}{%- endcapture -%}
+{%- else -%}
+  {%- assign page_title = site.title -%}
+{%- endif -%}
+{%- assign page_description = page.description | default: page.subtitle | default: site.description | strip_newlines | strip -%}
+
+<title>{{ page_title }}</title>
+<meta name="description" content="{{ page_description | escape }}">
+<link rel="canonical" href="{{ page.url | absolute_url }}">
+
+<meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+<meta property="og:title" content="{{ page_title | escape }}">
+<meta property="og:description" content="{{ page_description | escape }}">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
+<meta property="og:site_name" content="{{ site.title | escape }}">
+<meta name="twitter:card" content="summary">
+
+{%- comment -%}
+  An inline SVG favicon: a single ink dot fading at its edge. Kept as a data URI
+  so the site ships no image files and nothing extra to download.
+{%- endcomment -%}
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%233a4a6b'/><circle cx='16' cy='16' r='13' fill='%233a4a6b' opacity='0.25'/></svg>">
+
+{%- comment -%}
+  Newsreader is a variable serif drawn for reading on screens. One family
+  covers every weight and both italics, so the page needs a single request.
+{%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&display=swap">
+
+<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
